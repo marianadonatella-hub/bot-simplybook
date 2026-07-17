@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
         </head>
         <body>
             <div class="card">
-                <h2>🤖 Asistent AI Programări (Parametri Oficiali)</h2>
+                <h2>🤖 Asistent AI Programări (Format Corectat)</h2>
                 <form action="/rezerva" method="POST">
                     <label>Nume Client:</label>
                     <input type="text" name="name" required>
@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
 
 app.post('/rezerva', async (req, res) => {
     const { name, email, date, time } = req.body;
-    console.log(`\n🚨 [SERVER] Cerere recepționată! Nume: ${name}, Dată: ${date}, Oră: ${time}`);
+    console.log(`\n🚨 [SERVER] Cerere nouă pentru: ${name}`);
     
     const company = 'maranatest';
     const apiKey = 'api_user_key_NRKmlvmoLPtCfyJLVib6Csz33VNYFng8VejjeoE4JfI';
@@ -59,38 +59,32 @@ app.post('/rezerva', async (req, res) => {
     const apiUrl = 'https://simplybook.me';
 
     try {
-        console.log('⏳ Solicit token de acces public...');
+        console.log('⏳ Solicit token de acces...');
         const loginResponse = await axios.post(loginUrl, {
             jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
         });
         
         const token = loginResponse.data.result;
-        console.log('✅ Token validat cu succes!');
+        console.log('✅ Token primit.');
 
-        // Aliniem structura cuvinte cu cuvinte după dictarea suportului tehnic SimplyBook!
-        const dateRezervareOficiale = {
-            eventId: '1',               // ID-ul serviciului (Consultație)
-            unitId: '1',                // ID-ul furnizorului (Doctor Popa)
-            date: date,                 // Data culeasă (YYYY-MM-DD)
-            time: time + ':00',         // Ora formatată (HH:MM:SS)
-            clientData: {
+        // Transmitem parametrii ca obiect cu chei explicite, ocolind masivul rigid ordonat
+        const paramsObiect = {
+            event_id: '1',
+            provider_id: '1',
+            date: date,
+            time: time + ':00',
+            client_data: {
                 name: name,
                 email: email,
                 phone: '0722123456'
             }
         };
 
-        console.log(`⏳ Trimit comanda 'book' cu noii parametri aliniați...`);
+        console.log(`⏳ Trimit comanda 'book' în format obiect structurat...`);
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            params: [
-                dateRezervareOficiale.eventId,
-                dateRezervareOficiale.unitId,
-                dateRezervareOficiale.date,
-                dateRezervareOficiale.time,
-                dateRezervareOficiale.clientData
-            ],
+            params: paramsObiect, // Folosim obiectul direct pentru a evita erorile de ordine
             id: 2
         }, {
             headers: {
@@ -100,18 +94,18 @@ app.post('/rezerva', async (req, res) => {
             }
         });
 
-        console.log(`📦 Răspuns brut:`, JSON.stringify(response.data));
+        console.log(`📦 Răspuns primit de la server:`, JSON.stringify(response.data));
 
         if (response.data.error) {
-            res.send(`<h1>❌ SimplyBook a respins programarea:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
+            res.send(`<h1>❌ SimplyBook a respins datele:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
         } else {
             res.send(`
                 <body style="font-family: Arial; text-align: center; padding: 50px; background: #e8f5e9;">
                     <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                         <h1 style="color: #2e7d32; font-size: 36px; margin-bottom: 10px;">🎉 VICTORIE!!!</h1>
-                        <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost înregistrată!</h2>
-                        <p style="font-size: 18px; color: #444;">ID Rezervare returnat: <b>${JSON.stringify(response.data.result)}</b></p>
-                        <p style="color: #666;">Deschide acum <b>Calendarul SimplyBook</b> online și vezi numele! 🚀</p>
+                        <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost salvată!</h2>
+                        <p style="font-size: 18px; color: #444;">ID Rezervare înregistrat: <b>${JSON.stringify(response.data.result)}</b></p>
+                        <p style="color: #666;">Verifică acum <b>Calendarul SimplyBook</b> online! 🚀</p>
                         <br>
                         <a href="/" style="background: #2e7d32; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Fă o nouă programare</a>
                     </div>
@@ -120,12 +114,12 @@ app.post('/rezerva', async (req, res) => {
         }
 
     } catch (error) {
-        console.log(`❌ Eroare la procesare:`, error.message);
+        console.log(`❌ Eroare:`, error.message);
         res.send(`<h1>❌ Eroare server:</h1><p>${error.message}</p><a href="/">Înapoi</a>`);
     }
 });
 
 const portActual = process.env.PORT || port;
 app.listen(portActual, () => {
-    console.log(`🚀 Serverul oficial rulează la adresa: http://localhost:${portActual}`);
+    console.log(`🚀 Serverul rulează la adresa portului curent.`);
 });
