@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
         </head>
         <body>
             <div class="card">
-                <h2>🤖 Asistent AI Programări (Marea Finala)</h2>
+                <h2>🤖 Asistent AI Programări</h2>
                 <form action="/rezerva" method="POST">
                     <label>Nume Client:</label>
                     <input type="text" name="name" required>
@@ -50,43 +50,26 @@ app.get('/', (req, res) => {
 
 app.post('/rezerva', async (req, res) => {
     const { name, email, date, time } = req.body;
-    console.log(`\n🚨 [SERVER] Cerere primită! Nume: ${name}`);
+    console.log(`\n🚨 [SERVER] Cerere nouă primită pentru: ${name}`);
     
     const company = 'maranatest';
-    // Utilizăm cheia ta publică originală din Custom Features, aprobată pentru rezervări!
     const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
     
-    const loginUrl = 'https://user-api.simplybook.me/login';
-    const apiUrl = 'https://user-api.simplybook.me';
+    const loginUrl = 'https://simplybook.me';
+    const apiUrl = 'https://simplybook.me';
 
     try {
-        console.log('⏳ Solicit token de acces prin cheia publică oficială...');
         const loginResponse = await axios.post(loginUrl, {
             jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
         });
-        
         const token = loginResponse.data.result;
-        console.log('✅ Token primit de la SimplyBook.');
 
-        const clientData = {
-            name: name,
-            email: email,
-            phone: '0722123456'
-        };
+        const clientData = { name, email, phone: '0722123456' };
 
-        console.log(`⏳ Trimit rezervarea finală în format masiv standard...`);
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            // Tritem parametrii EXACT ca masiv simplu ordonat conform ghidului SimplyBook!
-            params: [
-                "2",                // 1. eventId (Consultație)
-                "2",                // 2. unitId (Doctor Popa)
-                date,               // 3. date (YYYY-MM-DD)
-                time + ':00',       // 4. time (HH:MM:SS)
-                clientData,         // 5. clientData (obiect)
-                null                // 6. additionalFields (marcat ca null conform standardului JSON-RPC public)
-            ],
+            params: ["2", "2", date, time + ':00', clientData, null],
             id: 2
         }, {
             headers: {
@@ -96,32 +79,37 @@ app.post('/rezerva', async (req, res) => {
             }
         });
 
-        console.log(`📦 Răspuns brut server:`, JSON.stringify(response.data));
-
         if (response.data.error) {
-            res.send(`<h1>❌ SimplyBook a respins datele:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">Eroare: ${response.data.error.message}</div><a href="/">Înapoi</a>`);
+            res.send(`<h1>❌ Rezervarea nu a putut fi salvată:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
         } else {
+            // EXTRAGEM CODUL SALVATOR CURAT DIN INTERIORUL BANCHETULUI DE DATE
+            const codRezervare = response.data.result.bookings[0].code;
+            
             res.send(`
                 <body style="font-family: Arial; text-align: center; padding: 50px; background: #e8f5e9;">
-                    <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                        <h1 style="color: #2e7d32; font-size: 36px; margin-bottom: 10px;">🎉 VICTORIE!!!</h1>
-                        <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost salvată cu succes!</h2>
-                        <p style="font-size: 18px; color: #444;">ID Rezervare în sistem: <b>${JSON.stringify(response.data.result)}</b></p>
-                        <p style="color: #666;">Deschide acum <b>Calendarul SimplyBook</b> online! Numele tău este acolo! 🚀</p>
+                    <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 450px;">
+                        <h1 style="color: #2e7d32; font-size: 32px; margin-bottom: 10px;">🎉 Programare Reușită!</h1>
+                        <h2 style="color: #388e3c; margin-top: 0; font-size: 20px;">Rezervarea a fost salvată oficial în calendar.</h2>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="font-size: 18px; color: #333; text-align: left; margin-left: 20px;">
+                            👤 <b>Client:</b> ${name}<br>
+                            📅 <b>Data:</b> ${date}<br>
+                            🕒 <b>Ora:</b> ${time}<br>
+                            🔑 <b>Cod Confirmare:</b> <span style="background: #e8f5e9; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: #2e7d32;">${codRezervare}</span>
+                        </p>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="color: #666; font-size: 14px;">Un email de confirmare a fost trimis către sistemul administrativ. 🚀</p>
                         <br>
-                        <a href="/" style="background: #2e7d32; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Fă o nouă programare</a>
+                        <a href="/" style="background: #2e7d32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Fă o nouă programare</a>
                     </div>
                 </body>
             `);
         }
 
     } catch (error) {
-        console.log(`❌ Eroare rețea:`, error.message);
         res.send(`<h1>❌ Eroare server:</h1><p>${error.message}</p><a href="/">Înapoi</a>`);
     }
 });
 
 const portActual = process.env.PORT || port;
-app.listen(portActual, () => {
-    console.log(`🚀 Serverul funcționează perfect.`);
-});
+app.listen(portActual, () => { console.log(\`🚀 Server pregătit.\`); });
