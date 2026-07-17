@@ -54,7 +54,7 @@ app.post('/rezerva', async (req, res) => {
     
     const company = 'maranatest';
     const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
-    const urlV2 = `https://simplybook.it`;
+    const urlV2 = `https://simplybook.me`;
 
     // TRUCUL SUPREM: Lipim Data, Ora și adăugăm manual fusul orar al României (+03:00) pentru vară
     // Formatul final va fi de tipul: "2026-07-20T11:00:00+03:00"
