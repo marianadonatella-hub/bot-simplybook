@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
         </head>
         <body>
             <div class="card">
-                <h2>🤖 Asistent AI Programări (Soluție Finală)</h2>
+                <h2>🤖 Asistent AI Programări (Testul de Aur)</h2>
                 <form action="/rezerva" method="POST">
                     <label>Nume Client:</label>
                     <input type="text" name="name" required>
