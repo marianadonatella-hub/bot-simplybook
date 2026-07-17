@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
         </head>
         <body>
             <div class="card">
-                <h2>🤖 Asistent AI Programări (Ghid Oficial)</h2>
+                <h2>🤖 Asistent AI Programări (Parametri Oficiali)</h2>
                 <form action="/rezerva" method="POST">
                     <label>Nume Client:</label>
                     <input type="text" name="name" required>
@@ -50,43 +50,47 @@ app.get('/', (req, res) => {
 
 app.post('/rezerva', async (req, res) => {
     const { name, email, date, time } = req.body;
-    console.log(`\n🚨 [SERVER] Am primit cerere pentru: ${name}, pe data: ${date}, ora: ${time}`);
+    console.log(`\n🚨 [SERVER] Cerere recepționată! Nume: ${name}, Dată: ${date}, Oră: ${time}`);
     
     const company = 'maranatest';
-    // Folosim cheia ta de admin (cea pe care ai generat-o cu api_user_key)
     const apiKey = 'api_user_key_NRKmlvmoLPtCfyJLVib6Csz33VNYFng8VejjeoE4JfI';
     
-    // Adresele oficiale dictate de suportul tehnic SimplyBook!
     const loginUrl = 'https://simplybook.me';
     const apiUrl = 'https://simplybook.me';
 
     try {
-        // Pasul 1: Cerem token-ul de acces prin ușa oficială
-        console.log('⏳ Solicit token de acces conform ghidului oficial...');
+        console.log('⏳ Solicit token de acces public...');
         const loginResponse = await axios.post(loginUrl, {
-            jsonrpc: '2.0',
-            method: 'getToken',
-            params: [company, apiKey],
-            id: 1
+            jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
         });
         
         const token = loginResponse.data.result;
-        console.log('✅ Token primit de la SimplyBook:', token);
+        console.log('✅ Token validat cu succes!');
 
-        // Pasul 2: Pregătim structura JSON-RPC 2.0 oficială pentru metoda 'book'
-        const detaliiRezervare = {
-            client: { name, email, phone: '0722123456' },
-            date: date,
-            time: time + ':00', // Adăugăm secundele :00 obligatorii
-            provider_id: '1',
-            service_id: '1'
+        // Aliniem structura cuvinte cu cuvinte după dictarea suportului tehnic SimplyBook!
+        const dateRezervareOficiale = {
+            eventId: '1',               // ID-ul serviciului (Consultație)
+            unitId: '1',                // ID-ul furnizorului (Doctor Popa)
+            date: date,                 // Data culeasă (YYYY-MM-DD)
+            time: time + ':00',         // Ora formatată (HH:MM:SS)
+            clientData: {
+                name: name,
+                email: email,
+                phone: '0722123456'
+            }
         };
 
-        console.log(`⏳ Trimit comanda oficială 'book' în baza de date SimplyBook...`);
+        console.log(`⏳ Trimit comanda 'book' cu noii parametri aliniați...`);
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            params: [detaliiRezervare],
+            params: [
+                dateRezervareOficiale.eventId,
+                dateRezervareOficiale.unitId,
+                dateRezervareOficiale.date,
+                dateRezervareOficiale.time,
+                dateRezervareOficiale.clientData
+            ],
             id: 2
         }, {
             headers: {
@@ -96,18 +100,18 @@ app.post('/rezerva', async (req, res) => {
             }
         });
 
-        console.log(`📦 Răspuns primit:`, JSON.stringify(response.data));
+        console.log(`📦 Răspuns brut:`, JSON.stringify(response.data));
 
         if (response.data.error) {
-            res.send(`<h1>❌ SimplyBook a respins datele:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
+            res.send(`<h1>❌ SimplyBook a respins programarea:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
         } else {
             res.send(`
                 <body style="font-family: Arial; text-align: center; padding: 50px; background: #e8f5e9;">
                     <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                        <h1 style="color: #2e7d32; font-size: 36px; margin-bottom: 10px;">🎉 VICTORIE ABSOLUTĂ!!!</h1>
-                        <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost salvată în calendar!</h2>
-                        <p style="font-size: 18px; color: #444;">ID Rezervare primit: <b>${JSON.stringify(response.data.result)}</b></p>
-                        <p style="color: #666;">Deschide acum <b>Calendarul SimplyBook</b> online și verifică numele! 🚀</p>
+                        <h1 style="color: #2e7d32; font-size: 36px; margin-bottom: 10px;">🎉 VICTORIE!!!</h1>
+                        <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost înregistrată!</h2>
+                        <p style="font-size: 18px; color: #444;">ID Rezervare returnat: <b>${JSON.stringify(response.data.result)}</b></p>
+                        <p style="color: #666;">Deschide acum <b>Calendarul SimplyBook</b> online și vezi numele! 🚀</p>
                         <br>
                         <a href="/" style="background: #2e7d32; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Fă o nouă programare</a>
                     </div>
@@ -116,11 +120,12 @@ app.post('/rezerva', async (req, res) => {
         }
 
     } catch (error) {
-        console.log(`❌ Eroare rețea:`, error.message);
+        console.log(`❌ Eroare la procesare:`, error.message);
         res.send(`<h1>❌ Eroare server:</h1><p>${error.message}</p><a href="/">Înapoi</a>`);
     }
 });
 
-app.listen(port, () => {
-    console.log(`🚀 Serverul oficial rulează la adresa: http://localhost:${port}`);
+const portActual = process.env.PORT || port;
+app.listen(portActual, () => {
+    console.log(`🚀 Serverul oficial rulează la adresa: http://localhost:${portActual}`);
 });
