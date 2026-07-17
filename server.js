@@ -75,7 +75,7 @@ app.post('/rezerva', async (req, res) => {
         const response = await axios.post(urlV2, dateRezervarev2, {
             headers: {
                 'X-Company-Login': company,
-                'X-Token': apiKey,
+                'X-User-Token': apiKey,
                 'Content-Type': 'application/json'
             }
         });
