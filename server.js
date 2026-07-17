@@ -80,8 +80,8 @@ app.post('/rezerva', async (req, res) => {
             method: 'book',
             // Tritem parametrii EXACT ca masiv simplu ordonat conform ghidului SimplyBook!
             params: [
-                "1",                // 1. eventId (Consultație)
-                "1",                // 2. unitId (Doctor Popa)
+                "2",                // 1. eventId (Consultație)
+                "2",                // 2. unitId (Doctor Popa)
                 date,               // 3. date (YYYY-MM-DD)
                 time + ':00',       // 4. time (HH:MM:SS)
                 clientData,         // 5. clientData (obiect)
