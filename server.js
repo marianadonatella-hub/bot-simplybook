@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
         </head>
         <body>
             <div class="card">
-                <h2>🤖 Asistent AI Programări (Fus Orar Securizat)</h2>
+                <h2>🤖 Asistent AI Programări (Ghid Oficial)</h2>
                 <form action="/rezerva" method="POST">
                     <label>Nume Client:</label>
                     <input type="text" name="name" required>
@@ -50,70 +50,77 @@ app.get('/', (req, res) => {
 
 app.post('/rezerva', async (req, res) => {
     const { name, email, date, time } = req.body;
-    console.log(`\n🚨 [SERVER] Am primit cerere! Nume: ${name}, Dată: ${date}, Oră: ${time}`);
+    console.log(`\n🚨 [SERVER] Am primit cerere pentru: ${name}, pe data: ${date}, ora: ${time}`);
     
     const company = 'maranatest';
-    const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
-    const urlV2 = `https://simplybook.me`;
-
-    // TRUCUL SUPREM: Lipim Data, Ora și adăugăm manual fusul orar al României (+03:00) pentru vară
-    // Formatul final va fi de tipul: "2026-07-20T11:00:00+03:00"
-    const dataOraSecurizata = `${date}T${time}:00+03:00`;
-    console.log(`🕒 Trimit timp formatat ISO universal: ${dataOraSecurizata}`);
-
-    const dateRezervarev2 = {
-        client: { name, email, phone: '0722123456' },
-        bookings: [{
-            start_datetime: dataOraSecurizata, // Folosim noul parametru standard V2 pentru timp controlat
-            provider_id: 1,
-            service_id: 1
-        }]
-    };
+    // Folosim cheia ta de admin (cea pe care ai generat-o cu api_user_key)
+    const apiKey = 'api_user_key_NRKmlvmoLPtCfyJLVib6Csz33VNYFng8VejjeoE4JfI';
+    
+    // Adresele oficiale dictate de suportul tehnic SimplyBook!
+    const loginUrl = 'https://simplybook.me';
+    const apiUrl = 'https://simplybook.me';
 
     try {
-        console.log(`⏳ Trimit programarea prin API V2...`);
-        const response = await axios.post(urlV2, dateRezervarev2, {
+        // Pasul 1: Cerem token-ul de acces prin ușa oficială
+        console.log('⏳ Solicit token de acces conform ghidului oficial...');
+        const loginResponse = await axios.post(loginUrl, {
+            jsonrpc: '2.0',
+            method: 'getToken',
+            params: [company, apiKey],
+            id: 1
+        });
+        
+        const token = loginResponse.data.result;
+        console.log('✅ Token primit de la SimplyBook:', token);
+
+        // Pasul 2: Pregătim structura JSON-RPC 2.0 oficială pentru metoda 'book'
+        const detaliiRezervare = {
+            client: { name, email, phone: '0722123456' },
+            date: date,
+            time: time + ':00', // Adăugăm secundele :00 obligatorii
+            provider_id: '1',
+            service_id: '1'
+        };
+
+        console.log(`⏳ Trimit comanda oficială 'book' în baza de date SimplyBook...`);
+        const response = await axios.post(apiUrl, {
+            jsonrpc: '2.0',
+            method: 'book',
+            params: [detaliiRezervare],
+            id: 2
+        }, {
             headers: {
                 'X-Company-Login': company,
-                'X-User-Token': apiKey,
+                'X-Token': token,
                 'Content-Type': 'application/json'
             }
         });
 
-        console.log(`✅ Răspuns primit:`, JSON.stringify(response.data));
+        console.log(`📦 Răspuns primit:`, JSON.stringify(response.data));
 
-        res.send(`
-            <body style="font-family: Arial; text-align: center; padding: 50px; background: #e8f5e9;">
-                <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                    <h1 style="color: #2e7d32; font-size: 36px; margin-bottom: 10px;">🎉 VICTORIE!!!</h1>
-                    <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost salvată în calendar!</h2>
-                    <p style="font-size: 18px; color: #444;">ID Rezervare returnat: <b>${JSON.stringify(response.data)}</b></p>
-                    <p style="color: #666;">Deschide acum <b>Calendarul SimplyBook</b> online și verifică! 🚀</p>
-                    <br>
-                    <a href="/" style="background: #2e7d32; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Fă o nouă programare</a>
-                </div>
-            </body>
-        `);
-
-    } catch (error) {
-        console.log(`❌ Eroare la trimitere:`, error.response ? JSON.stringify(error.response.data) : error.message);
-        
-        let mesajEroare = error.message;
-        if (error.response && error.response.data && error.response.data.message) {
-            mesajEroare = error.response.data.message;
+        if (response.data.error) {
+            res.send(`<h1>❌ SimplyBook a respins datele:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
+        } else {
+            res.send(`
+                <body style="font-family: Arial; text-align: center; padding: 50px; background: #e8f5e9;">
+                    <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h1 style="color: #2e7d32; font-size: 36px; margin-bottom: 10px;">🎉 VICTORIE ABSOLUTĂ!!!</h1>
+                        <h2 style="color: #388e3c; margin-top: 0;">Programarea a fost salvată în calendar!</h2>
+                        <p style="font-size: 18px; color: #444;">ID Rezervare primit: <b>${JSON.stringify(response.data.result)}</b></p>
+                        <p style="color: #666;">Deschide acum <b>Calendarul SimplyBook</b> online și verifică numele! 🚀</p>
+                        <br>
+                        <a href="/" style="background: #2e7d32; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">Fă o nouă programare</a>
+                    </div>
+                </body>
+            `);
         }
 
-        res.send(`
-            <h1>❌ SimplyBook a respins rezervarea:</h1>
-            <div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">
-                ${mesajEroare}
-            </div>
-            <p>💡 Sfat: Verifică dacă ora aleasă este în interiorul orarului 09:00 - 18:00.</p>
-            <a href="/">Înapoi</a>
-        `);
+    } catch (error) {
+        console.log(`❌ Eroare rețea:`, error.message);
+        res.send(`<h1>❌ Eroare server:</h1><p>${error.message}</p><a href="/">Înapoi</a>`);
     }
 });
 
 app.listen(port, () => {
-    console.log(`🚀 Serverul REST V2 rulează la adresa: http://localhost:${port}`);
+    console.log(`🚀 Serverul oficial rulează la adresa: http://localhost:${port}`);
 });
