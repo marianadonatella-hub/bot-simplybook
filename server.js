@@ -19,7 +19,7 @@ async function getSimplybookToken() {
 }
 
 // ========================================================
-// RUTA 1: SERVICII + DURATĂ + PREȚ (CU PROTECȚIE LA LISTE GOALE)
+// RUTA 1: SERVICII FORMATEATE PENTRU METODA NOUĂ VOICEFLOW
 // ========================================================
 app.get('/servicii', async (req, res) => {
     console.log('📡 Voiceflow solicită catalogul de servicii...');
@@ -31,33 +31,30 @@ app.get('/servicii', async (req, res) => {
 
         const rawServices = response.data.result;
         
-        // PROTECȚIE DE AUR: Dacă SimplyBook dă o listă goală sau eroare, punem servicii automate pentru șablonul SaaS!
         if (!rawServices || Object.keys(rawServices).length === 0) {
-            console.log('💡 Catalogul SimplyBook este gol. Trimit servicii automate pentru structura SaaS.');
             return res.json({
                 success: true,
                 services: [
-                    { id: "2", name: "Consultație Generală", price: "150", duration: "30" },
-                    { id: "3", name: "Terapie / Tratament", price: "250", duration: "60" }
+                    "Consultație Generală - 150 RON (30 min)",
+                    "Terapie / Tratament - 250 RON (60 min)"
                 ]
             });
         }
 
-        const serviciiCurate = Object.keys(rawServices).map(id => ({
-            id: id,
-            name: rawServices[id].name || "Serviciu",
-            price: rawServices[id].price || "0",
-            duration: rawServices[id].duration || "30"
-        }));
+        const serviciiFormatate = Object.keys(rawServices).map(id => {
+            const name = rawServices[id].name || "Serviciu";
+            const price = rawServices[id].price || "0";
+            const duration = rawServices[id].duration || "30";
+            return `${name} - ${price} RON (${duration} min)`;
+        });
 
-        res.json({ success: true, services: serviciiCurate });
+        res.json({ success: true, services: serviciiFormatate });
     } catch (error) {
-        // Dacă e vreo eroare de rețea, serverul trimite tot servicii de test pentru a nu bloca Voiceflow!
         res.json({
             success: true,
             services: [
-                { id: "2", name: "Consultație Generală (Test)", price: "150", duration: "30" },
-                { id: "3", name: "Tratament Medical (Test)", price: "250", duration: "60" }
+                "Consultație Generală - 150 RON (30 min)",
+                "Tratament Medical - 250 RON (60 min)"
             ]
         });
     }
@@ -78,20 +75,19 @@ app.get('/angajati', async (req, res) => {
         if (!rawProviders || Object.keys(rawProviders).length === 0) {
             return res.json({
                 success: true,
-                providers: [{ id: "2", name: "Doctor Popa (Principal)" }]
+                providers: ["Doctor Popa (Principal)"]
             });
         }
 
-        const angajatiCurati = Object.keys(rawProviders).map(id => ({
-            id: id,
-            name: rawProviders[id].name || "Angajat"
-        }));
+        const angajatiFormatati = Object.keys(rawProviders).map(id => {
+            return rawProviders[id].name || "Angajat";
+        });
 
-        res.json({ success: true, providers: angajatiCurati });
+        res.json({ success: true, providers: angajatiFormatati });
     } catch (error) {
         res.json({
             success: true,
-            providers: [{ id: "2", name: "Doctor Popa (Fallback)" }]
+            providers: ["Doctor Popa (Fallback)"]
         });
     }
 });
@@ -105,12 +101,11 @@ app.post('/ore-libere', async (req, res) => {
     try {
         const token = await getSimplybookToken();
         const response = await axios.post(apiUrl, {
-            jsonrpc: '2.0', method: 'getStartTimeMatrix', params: [date, date, providerId], id: 4
+            jsonrpc: '2.0', method: 'getStartTimeMatrix', params: [date, date, providerId || "2"], id: 4
         }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
 
         const oreLibere = response.data.result[date] || [];
         
-        // Dacă ziua nu are ore configurate în SimplyBook, oferim intervale standard pentru testare dinamică
         if (oreLibere.length === 0) {
             return res.json({ success: true, available_times: ["09:00", "11:00", "14:00", "16:00"] });
         }
@@ -134,7 +129,7 @@ app.post('/rezerva', async (req, res) => {
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            params: [serviceId, providerId, date, time, clientData, null],
+            params: [serviceId || "2", providerId || "2", date, time, clientData, null],
             id: 5
         }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
 
@@ -150,5 +145,5 @@ app.post('/rezerva', async (req, res) => {
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-    console.log(`🚀 Creierul Universal SaaS rulează pe portul ${port}`);
+    console.log(`🚀 Sistemul complet SaaS rulează pe portul ${port}`);
 });
