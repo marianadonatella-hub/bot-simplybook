@@ -3,113 +3,117 @@ const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
-const port = 8080;
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="ro">
-        <head>
-            <meta charset="UTF-8">
-            <title>Asistent AI - Programări Automate</title>
-            <style>
-                body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 40px; display: flex; justify-content: center; }
-                .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-                h2 { color: #1a73e8; text-align: center; }
-                label { font-weight: bold; display: block; margin: 10px 0 5px; }
-                input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-                button { width: 100%; background: #1a73e8; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <h2>🤖 Asistent AI Programări</h2>
-                <form action="/rezerva" method="POST">
-                    <label>Nume Client:</label>
-                    <input type="text" name="name" required>
-                    
-                    <label>Email:</label>
-                    <input type="email" name="email" required>
-                    
-                    <label>Dată:</label>
-                    <input type="date" name="date" required>
-                    
-                    <label>Oră:</label>
-                    <input type="time" name="time" required>
-                    
-                    <button type="submit">Trimite Programarea</button>
-                </form>
-            </div>
-        </body>
-        </html>
-    `);
+const company = 'maranatest';
+const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
+const loginUrl = 'https://simplybook.me';
+const apiUrl = 'https://simplybook.me';
+
+async function getSimplybookToken() {
+    const loginResponse = await axios.post(loginUrl, {
+        jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
+    });
+    return loginResponse.data.result;
+}
+
+// ========================================================
+// RUTA 1: SERVICII + DURATĂ + PREȚ (EXTRASE COMPLET DINAMIC)
+// ========================================================
+app.get('/servicii', async (req, res) => {
+    console.log('📡 Voiceflow solicită catalogul de servicii...');
+    try {
+        const token = await getSimplybookToken();
+        const response = await axios.post(apiUrl, {
+            jsonrpc: '2.0', method: 'getServiceList', params: [], id: 2
+        }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
+
+        const serviciiCurate = Object.keys(response.data.result).map(id => ({
+            id: id,
+            name: response.data.result[id].name,
+            price: response.data.result[id].price,
+            duration: response.data.result[id].duration // Durata în minute extrasă live!
+        }));
+
+        res.json({ success: true, services: serviciiCurate });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
-app.post('/rezerva', async (req, res) => {
-    const { name, email, date, time } = req.body;
-    console.log(`\n🚨 [SERVER] Cerere nouă primită pentru: ${name}`);
-    
-    const company = 'maranatest';
-    const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
-    
-    const loginUrl = 'https://simplybook.me';
-    const apiUrl = 'https://simplybook.me';
-
+// ========================================================
+// RUTA 2: FURNIZORI / ANGAJAȚI DEDICAȚI (EXTRASE DINAMIC)
+// ========================================================
+app.get('/angajati', async (req, res) => {
+    console.log('📡 Voiceflow solicită lista de angajați...');
     try {
-        const loginResponse = await axios.post(loginUrl, {
-            jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
-        });
-        const token = loginResponse.data.result;
+        const token = await getSimplybookToken();
+        const response = await axios.post(apiUrl, {
+            jsonrpc: '2.0', method: 'getProviderList', params: [], id: 3
+        }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
 
-        const clientData = { name, email, phone: '0722123456' };
+        const angajatiCurati = Object.keys(response.data.result).map(id => ({
+            id: id,
+            name: response.data.result[id].name
+        }));
+
+        res.json({ success: true, providers: angajatiCurati });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ========================================================
+// RUTA 3: ORE LIBERE ÎN FUNCȚIE DE ANGAJAT ȘI DATĂ
+// ========================================================
+app.post('/ore-libere', async (req, res) => {
+    const { providerId, date } = req.body; 
+    console.log(`📡 Solicitare ore pentru furnizor ID: ${providerId} pe data: ${date}`);
+    try {
+        const token = await getSimplybookToken();
+        const response = await axios.post(apiUrl, {
+            jsonrpc: '2.0',
+            method: 'getStartTimeMatrix',
+            params: [date, date, providerId], // Verificăm exact angajatul ales din Voiceflow!
+            id: 4
+        }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
+
+        const oreLibere = response.data.result[date] || [];
+        res.json({ success: true, available_times: oreLibere });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ========================================================
+// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (SaaS COMPLET)
+// ========================================================
+app.post('/rezerva', async (req, res) => {
+    const { name, email, phone, date, time, serviceId, providerId } = req.body;
+    console.log(`📡 Executare programare în sistem pentru: ${name}`);
+    try {
+        const token = await getSimplybookToken();
+        const clientData = { name, email, phone: phone || '0722123456' };
 
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            params: ["2", "2", date, time + ':00', clientData, null],
-            id: 2
-        }, {
-            headers: {
-                'X-Company-Login': company,
-                'X-Token': token,
-                'Content-Type': 'application/json'
-            }
-        });
+            params: [serviceId, providerId, date, time, clientData, null],
+            id: 5
+        }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
 
         if (response.data.error) {
-            res.send(`<h1>❌ Rezervarea nu a putut fi salvată:</h1><div style="background:#ffebee;color:#c62828;padding:15px;border-radius:6px;font-family:monospace;font-weight:bold;">${response.data.error.message}</div><a href="/">Înapoi</a>`);
+            res.json({ success: false, error: response.data.error.message });
         } else {
-            // EXTRAGEM CODUL SALVATOR CURAT DIN INTERIORUL BANCHETULUI DE DATE
-            const codRezervare = response.data.result.bookings[0].code;
-            
-            res.send(`
-                <body style="font-family: Arial; text-align: center; padding: 50px; background: #e8f5e9;">
-                    <div style="background: white; padding: 40px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 450px;">
-                        <h1 style="color: #2e7d32; font-size: 32px; margin-bottom: 10px;">🎉 Programare Reușită!</h1>
-                        <h2 style="color: #388e3c; margin-top: 0; font-size: 20px;">Rezervarea a fost salvată oficial în calendar.</h2>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                        <p style="font-size: 18px; color: #333; text-align: left; margin-left: 20px;">
-                            👤 <b>Client:</b> ${name}<br>
-                            📅 <b>Data:</b> ${date}<br>
-                            🕒 <b>Ora:</b> ${time}<br>
-                            🔑 <b>Cod Confirmare:</b> <span style="background: #e8f5e9; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: #2e7d32;">${codRezervare}</span>
-                        </p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                        <p style="color: #666; font-size: 14px;">Un email de confirmare a fost trimis către sistemul administrativ. 🚀</p>
-                        <br>
-                        <a href="/" style="background: #2e7d32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Fă o nouă programare</a>
-                    </div>
-                </body>
-            `);
+            res.json({ success: true, booking_code: response.data.result.bookings.code });
         }
-
     } catch (error) {
-        res.send(`<h1>❌ Eroare server:</h1><p>${error.message}</p><a href="/">Înapoi</a>`);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-const portActual = process.env.PORT || port;
-app.listen(portActual, () => { console.log(\`🚀 Server pregătit.\`); });
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+    console.log(`🚀 Hub-ul SaaS rulează live pe portul ${port}`);
+});
