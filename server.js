@@ -19,7 +19,7 @@ async function getSimplybookToken() {
 }
 
 // ========================================================
-// RUTA 1: SERVICII FORMATEATE PENTRU METODA NOUĂ VOICEFLOW
+// RUTA 1: SERVICII FORMATEATE PENTRU LISTA NATIVĂ VOICEFLOW
 // ========================================================
 app.get('/servicii', async (req, res) => {
     console.log('📡 Voiceflow solicită catalogul de servicii...');
@@ -32,13 +32,10 @@ app.get('/servicii', async (req, res) => {
         const rawServices = response.data.result;
         
         if (!rawServices || Object.keys(rawServices).length === 0) {
-            return res.json({
-                success: true,
-                services: [
-                    "Consultație Generală - 150 RON (30 min)",
-                    "Terapie / Tratament - 250 RON (60 min)"
-                ]
-            });
+            return res.json([
+                "Consultație Generală - 150 RON (30 min)",
+                "Terapie / Tratament - 250 RON (60 min)"
+            ]);
         }
 
         const serviciiFormatate = Object.keys(rawServices).map(id => {
@@ -48,15 +45,12 @@ app.get('/servicii', async (req, res) => {
             return `${name} - ${price} RON (${duration} min)`;
         });
 
-        res.json({ success: true, services: serviciiFormatate });
+        res.json(serviciiFormatate);
     } catch (error) {
-        res.json({
-            success: true,
-            services: [
-                "Consultație Generală - 150 RON (30 min)",
-                "Tratament Medical - 250 RON (60 min)"
-            ]
-        });
+        res.json([
+            "Consultație Generală - 150 RON (30 min)",
+            "Tratament Medical - 250 RON (60 min)"
+        ]);
     }
 });
 
@@ -73,22 +67,16 @@ app.get('/angajati', async (req, res) => {
 
         const rawProviders = response.data.result;
         if (!rawProviders || Object.keys(rawProviders).length === 0) {
-            return res.json({
-                success: true,
-                providers: ["Doctor Popa (Principal)"]
-            });
+            return res.json(["Doctor Popa (Principal)"]);
         }
 
         const angajatiFormatati = Object.keys(rawProviders).map(id => {
             return rawProviders[id].name || "Angajat";
         });
 
-        res.json({ success: true, providers: angajatiFormatati });
+        res.json(angajatiFormatati);
     } catch (error) {
-        res.json({
-            success: true,
-            providers: ["Doctor Popa (Fallback)"]
-        });
+        res.json(["Doctor Popa (Fallback)"]);
     }
 });
 
@@ -107,12 +95,12 @@ app.post('/ore-libere', async (req, res) => {
         const oreLibere = response.data.result[date] || [];
         
         if (oreLibere.length === 0) {
-            return res.json({ success: true, available_times: ["09:00", "11:00", "14:00", "16:00"] });
+            return res.json(["09:00", "11:00", "14:00", "16:00"]);
         }
         
-        res.json({ success: true, available_times: oreLibere });
+        res.json(oreLibere);
     } catch (error) {
-        res.json({ success: true, available_times: ["09:00", "11:00", "14:00", "16:00"] });
+        res.json(["09:00", "11:00", "14:00", "16:00"]);
     }
 });
 
