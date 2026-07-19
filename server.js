@@ -114,19 +114,30 @@ app.post('/rezerva', async (req, res) => {
         const token = await getSimplybookToken();
         const clientData = { name, email, phone: phone || '0722123456' };
 
+        // CORECORECȚIE: SimplyBook cere Data și Ora unite cu spațiu și secunde la final!
+        // Exemplu final: "2026-07-21 14:00:00"
+        const dataOraCompleta = `${date} ${time}:00`; 
+
+        // CORECȚIE: Transformăm ID-urile în numere curate
+        const sId = parseInt(serviceId) || 2;
+        const pId = parseInt(providerId) || 2;
+
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            params: [serviceId || "2", providerId || "2", date, time, clientData, null],
+            params: [sId, pId, dataOraCompleta, clientData, null], // Am scos parametrul "time" separat
             id: 5
         }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
 
         if (response.data.error) {
+            console.log('❌ Eroare SimplyBook:', response.data.error.message);
             res.json({ success: false, error: response.data.error.message });
         } else {
+            console.log('✅ Programare salvată cu succes!');
             res.json({ success: true, booking_code: response.data.result.bookings.code });
         }
     } catch (error) {
+        console.log('❌ Eroare Server:', error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
