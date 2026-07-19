@@ -8,14 +8,21 @@ app.use(express.urlencoded({ extended: true }));
 
 const company = 'maranatest';
 const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
-const loginUrl = 'https://simplybook.me';
-const apiUrl = 'https://simplybook.me';
+
+// CORECȚIE URL-URI OFICIALE SIMPLYBOOK API
+const loginUrl = 'https://user-api.simplybook.me/login';
+const apiUrl = 'https://user-api.simplybook.me/';
 
 async function getSimplybookToken() {
-    const loginResponse = await axios.post(loginUrl, {
-        jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
-    });
-    return loginResponse.data.result;
+    try {
+        const loginResponse = await axios.post(loginUrl, {
+            jsonrpc: '2.0', method: 'getToken', params: [company, apiKey], id: 1
+        });
+        return loginResponse.data.result;
+    } catch (err) {
+        console.error('❌ Eroare obținere Token login:', err.message);
+        return null;
+    }
 }
 
 // ========================================================
@@ -105,7 +112,7 @@ app.post('/ore-libere', async (req, res) => {
 });
 
 // ========================================================
-// RUTA 4: REZERVAREA FINALĂ COMPLETĂ
+// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ CONFORM DOCUMENTAȚIEI)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
     const { name, email, phone, date, time, serviceId, providerId } = req.body;
@@ -114,18 +121,17 @@ app.post('/rezerva', async (req, res) => {
         const token = await getSimplybookToken();
         const clientData = { name, email, phone: phone || '0722123456' };
 
-        // CORECORECȚIE: SimplyBook cere Data și Ora unite cu spațiu și secunde la final!
-        // Exemplu final: "2026-07-21 14:00:00"
-        const dataOraCompleta = `${date} ${time}:00`; 
+        // CORECȚIE FORMAT: Formatul orei din Voiceflow ("14:00") are nevoie de secunde la final pentru SimplyBook ("14:00:00")
+        const oraCuSecunde = `${time}:00`; 
 
-        // CORECȚIE: Transformăm ID-urile în numere curate
         const sId = parseInt(serviceId) || 2;
         const pId = parseInt(providerId) || 2;
 
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            params: [sId, pId, dataOraCompleta, clientData, null], // Am scos parametrul "time" separat
+            // PARAMS CORECT: [serviceId, providerId, date_string, time_string, clientData, additional]
+            params: [sId, pId, date, oraCuSecunde, clientData, null], 
             id: 5
         }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
 
@@ -133,11 +139,11 @@ app.post('/rezerva', async (req, res) => {
             console.log('❌ Eroare SimplyBook:', response.data.error.message);
             res.json({ success: false, error: response.data.error.message });
         } else {
-            console.log('✅ Programare salvată cu succes!');
+            console.log('✅ Programare salvată cu succes în Calendar!');
             res.json({ success: true, booking_code: response.data.result.bookings.code });
         }
     } catch (error) {
-        console.log('❌ Eroare Server:', error.message);
+        console.log('❌ Eroare Server la Rezervare:', error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
