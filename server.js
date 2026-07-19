@@ -91,7 +91,10 @@ app.get('/angajati', async (req, res) => {
 // RUTA 3: ORE LIBERE ÎN FUNCȚIE DE ANGAJAT ȘI DATĂ
 // ========================================================
 app.post('/ore-libere', async (req, res) => {
-    const { providerId, date } = req.body; 
+    // CORECȚIE: Citește datele fie din Body, fie din Parameters (Query)
+    const providerId = req.body.providerId || req.query.providerId;
+    const date = req.body.date || req.query.date;
+
     console.log(`📡 Solicitare ore pentru furnizor ID: ${providerId} pe data: ${date}`);
     try {
         const token = await getSimplybookToken();
@@ -112,16 +115,22 @@ app.post('/ore-libere', async (req, res) => {
 });
 
 // ========================================================
-// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ CONFORM DOCUMENTAȚIEI)
+// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (ACTUALIZATĂ)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
-    const { name, email, phone, date, time, serviceId, providerId } = req.body;
-    console.log(`📡 Executare programare în sistem pentru: ${name}`);
+    // CORECȚIE: Adunăm datele indiferent dacă Voiceflow le trimite prin Body sau Parameters
+    const name = req.body.name || req.query.name;
+    const email = req.body.email || req.query.email;
+    const phone = req.body.phone || req.query.phone;
+    const date = req.body.date || req.query.date;
+    const time = req.body.time || req.query.time;
+    const serviceId = req.body.serviceId || req.query.serviceId;
+    const providerId = req.body.providerId || req.query.providerId;
+
+    console.log(`📡 Executare programare în sistem pentru: ${name} (${email})`);
     try {
         const token = await getSimplybookToken();
         const clientData = { name, email, phone: phone || '0722123456' };
-
-        // CORECȚIE FORMAT: Formatul orei din Voiceflow ("14:00") are nevoie de secunde la final pentru SimplyBook ("14:00:00")
         const oraCuSecunde = `${time}:00`; 
 
         const sId = parseInt(serviceId) || 2;
@@ -130,7 +139,6 @@ app.post('/rezerva', async (req, res) => {
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
             method: 'book',
-            // PARAMS CORECT: [serviceId, providerId, date_string, time_string, clientData, additional]
             params: [sId, pId, date, oraCuSecunde, clientData, null], 
             id: 5
         }, { headers: { 'X-Company-Login': company, 'X-Token': token } });
