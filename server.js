@@ -10,8 +10,8 @@ const company = 'maranatest';
 const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
 
 // CORECȚIE URL-URI OFICIALE SIMPLYBOOK API
-const loginUrl = 'https://user-api.simplybook.me';
-const apiUrl = 'https://user-api.simplybook.me';
+const loginUrl = 'https://user-api.simplybook.me/login';
+const apiUrl = 'https://user-api.simplybook.me/';
 
 async function getSimplybookToken() {
     try {
