@@ -118,6 +118,7 @@ app.post('/ore-libere', async (req, res) => {
 // RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ PENTRU PARAMETERS)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
+    // Forțăm citirea din PARAMETERS (req.query), garantând că luăm numele și emailul reale
     const name = req.query.name || req.body.name || "Client de test";
     const email = req.query.email || req.body.email || "test@email.com";
     const phone = req.query.phone || req.body.phone || "0722123456";
