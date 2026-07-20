@@ -118,12 +118,12 @@ app.post('/ore-libere', async (req, res) => {
 // RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ PENTRU PARAMETERS)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
-    // Forțăm citirea din PARAMETERS (req.query), garantând că luăm numele și emailul reale
-    const name = req.query.name || req.body.name || "Client de test";
-    const email = req.query.email || req.body.email || "test@email.com";
-    const phone = req.query.phone || req.body.phone || "0722123456";
-    const date = req.query.date || req.body.date || "2026-07-23";
-    const time = req.query.time || req.body.time || "14:00";
+    // FORȚĂM DATE REALE DIRECT ÎN COD PENTRU A DEBLOCA CALENDARUL SIMPLYBOOK!
+    const name = "Popescu Test Real";
+    const email = "marianadonatella@gmail.com"; // Punem emailul tău curat direct în cod
+    const phone = "0743435945";
+    const date = "2026-07-23"; // O zi validă din viitor
+    const time = "14:00";
 
     console.log(`📡 Executare programare în sistem pentru: ${name} (${email})`);
     try {
