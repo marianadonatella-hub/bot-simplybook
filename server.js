@@ -91,9 +91,9 @@ app.get('/angajati', async (req, res) => {
 // RUTA 3: ORE LIBERE ÎN FUNCȚIE DE ANGAJAT ȘI DATĂ
 // ========================================================
 app.post('/ore-libere', async (req, res) => {
-    // CORECȚIE: Citește datele fie din Body, fie din Parameters (Query)
-    const providerId = req.body.providerId || req.query.providerId;
-    const date = req.body.date || req.query.date;
+    // Forțăm citirea din PARAMETERS (req.query), deoarece Body-ul este gol în Voiceflow
+    const providerId = req.query.providerId || req.body.providerId;
+    const date = req.query.date || req.body.date;
 
     console.log(`📡 Solicitare ore pentru furnizor ID: ${providerId} pe data: ${date}`);
     try {
@@ -115,17 +115,17 @@ app.post('/ore-libere', async (req, res) => {
 });
 
 // ========================================================
-// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (ACTUALIZATĂ)
+// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ PENTRU PARAMETERS)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
-    // CORECȚIE: Adunăm datele indiferent dacă Voiceflow le trimite prin Body sau Parameters
-    const name = req.body.name || req.query.name;
-    const email = req.body.email || req.query.email;
-    const phone = req.body.phone || req.query.phone;
-    const date = req.body.date || req.query.date;
-    const time = req.body.time || req.query.time;
-    const serviceId = req.body.serviceId || req.query.serviceId;
-    const providerId = req.body.providerId || req.query.providerId;
+    // Forțăm citirea din PARAMETERS (req.query), garantând că luăm numele și emailul reale
+    const name = req.query.name || req.body.name;
+    const email = req.query.email || req.body.email;
+    const phone = req.query.phone || req.body.phone;
+    const date = req.query.date || req.body.date;
+    const time = req.query.time || req.body.time;
+    const serviceId = req.query.serviceId || req.body.serviceId;
+    const providerId = req.query.providerId || req.body.providerId;
 
     console.log(`📡 Executare programare în sistem pentru: ${name} (${email})`);
     try {
@@ -154,9 +154,4 @@ app.post('/rezerva', async (req, res) => {
         console.log('❌ Eroare Server la Rezervare:', error.message);
         res.status(500).json({ success: false, error: error.message });
     }
-});
-
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-    console.log(`🚀 Sistemul complet SaaS rulează pe portul ${port}`);
 });
