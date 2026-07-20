@@ -133,7 +133,7 @@ app.post('/rezerva', async (req, res) => {
 
         // FORȚĂM ID-UL 1 PENTRU MEDIC ȘI SERVICIU (Să apară sigur în calendarul tău principal!)
         const sId = 2;
-        const pId = 1;
+        const pId = 2;
 
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
