@@ -10,8 +10,8 @@ const company = 'maranatest';
 const apiKey = '0bf6ea3730306fa9266fc5e7e08f6fb1adff99c64986d04c2c2890c122cb5b1a';
 
 // CORECȚIE URL-URI OFICIALE SIMPLYBOOK API
-const loginUrl = 'https://user-api.simplybook.me/login';
-const apiUrl = 'https://user-api.simplybook.me/';
+const loginUrl = 'https://simplybook.me';
+const apiUrl = 'https://simplybook.me';
 
 async function getSimplybookToken() {
     try {
@@ -120,12 +120,12 @@ app.post('/ore-libere', async (req, res) => {
 app.post('/rezerva', async (req, res) => {
     // Forțăm citirea din PARAMETERS (req.query), garantând că luăm numele și emailul reale
     const name = req.query.name || req.body.name;
-    const email = req.query.email || req.body.email;
+    const email = req.query.email || req.query.email;
     const phone = req.query.phone || req.body.phone;
     const date = req.query.date || req.body.date;
     const time = req.query.time || req.body.time;
     const serviceId = req.query.serviceId || req.body.serviceId;
-    const providerId = req.query.providerId || req.body.providerId;
+    const providerId = req.query.providerId || req.query.providerId;
 
     console.log(`📡 Executare programare în sistem pentru: ${name} (${email})`);
     try {
@@ -154,4 +154,10 @@ app.post('/rezerva', async (req, res) => {
         console.log('❌ Eroare Server la Rezervare:', error.message);
         res.status(500).json({ success: false, error: error.message });
     }
+});
+
+// PORNIRE SERVER PE PORTUL CORECT
+const port = process.env.PORT || 10000;
+app.listen(port, () => {
+    console.log(`🚀 Sistemul complet SaaS rulează pe portul ${port}`);
 });
