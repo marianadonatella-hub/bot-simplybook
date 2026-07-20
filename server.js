@@ -132,7 +132,7 @@ app.post('/rezerva', async (req, res) => {
         const oraCuSecunde = `${time}:00`; 
 
         // FORȚĂM ID-UL 1 PENTRU MEDIC ȘI SERVICIU (Să apară sigur în calendarul tău principal!)
-        const sId = 0;
+        const sId = 2;
         const pId = 1;
 
         const response = await axios.post(apiUrl, {
