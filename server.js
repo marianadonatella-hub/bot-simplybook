@@ -118,22 +118,24 @@ app.post('/ore-libere', async (req, res) => {
 // RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ PENTRU PARAMETERS)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
-    // FORȚĂM DATE REALE DIRECT ÎN COD PENTRU A DEBLOCA CALENDARUL SIMPLYBOOK!
-    const name = "Popescu Test Real";
-    const email = "marianadonatella@gmail.com"; // Punem emailul tău curat direct în cod
-    const phone = "0743435945";
-    const date = "2026-07-23"; // O zi validă din viitor
-    const time = "14:00";
+    // Preluăm datele 100% reale trimise din Voiceflow (fie prin Parameters, fie prin Body)
+    const name = req.query.name || req.body.name;
+    const email = req.query.email || req.body.email;
+    const phone = req.query.phone || req.body.phone;
+    const date = req.query.date || req.body.date;
+    const time = req.query.time || req.body.time;
+    const serviceId = req.query.serviceId || req.body.serviceId;
+    const providerId = req.query.providerId || req.body.providerId;
 
-    console.log(`📡 Executare programare în sistem pentru: ${name} (${email})`);
+    console.log(`📡 Executare programare reală pentru: ${name} (${email})`);
     try {
         const token = await getSimplybookToken();
         const clientData = { name, email, phone };
         const oraCuSecunde = `${time}:00`; 
 
-        // FORȚĂM ID-UL 1 PENTRU MEDIC ȘI SERVICIU (Să apară sigur în calendarul tău principal!)
-        const sId = 2;
-        const pId = 2;
+        // Transformăm ID-urile în cifre curate
+        const sId = parseInt(serviceId);
+        const pId = parseInt(providerId);
 
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
@@ -146,8 +148,8 @@ app.post('/rezerva', async (req, res) => {
             console.log('❌ Eroare SimplyBook:', response.data.error.message);
             res.json({ success: false, error: response.data.error.message });
         } else {
-            console.log('✅ REZERVARE CONFIRMATĂ ÎN SIMPLYBOOK!');
-            res.json({ success: true, message: "Programare salvată!" }); // Am simplificat răspunsul ca să nu mai dea erori!
+            console.log(`✅ PROGRAMARE SALVATĂ CU SUCCES PENTRU: ${name}`);
+            res.json({ success: true, message: "Programare salvată cu succes!" });
         }
     } catch (error) {
         console.log('❌ Eroare Server la Rezervare:', error.message);
