@@ -115,7 +115,7 @@ app.post('/ore-libere', async (req, res) => {
 });
 
 // ========================================================
-// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ PENTRU PARAMETERS)
+// RUTA 4: REZERVAREA FINALĂ COMPLETĂ (VARIANTA INTELIGENTĂ FINALĂ)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
     // Preluăm datele și le curățăm automat de spații goale cu .trim()
@@ -133,9 +133,16 @@ app.post('/rezerva', async (req, res) => {
         const clientData = { name, email, phone };
         const oraCuSecunde = `${time}:00`; 
 
-        // Transformăm ID-urile în cifre curate
-        const sId = parseInt(serviceId);
-        const pId = parseInt(providerId);
+        // DETECTARE INTELIGENTĂ ȘI FORȚARE ID REAL ÎN FUNCȚIE DE BUTONUL APĂSAT ÎN CHAT
+        let sId = 2; // Valoarea de bază (Consultație Generală - ID 2)
+        
+        if (serviceId && serviceId.toLowerCase().includes('terapie')) {
+            sId = 3; // Dacă utilizatorul a ales Terapie, punem ID-ul real 3!
+        } else if (serviceId && serviceId.toLowerCase().includes('tratament')) {
+            sId = 3;
+        }
+
+        const pId = 2; // ID-ul real pentru Doctor Popa din SimplyBook
 
         const response = await axios.post(apiUrl, {
             jsonrpc: '2.0',
