@@ -118,14 +118,14 @@ app.post('/ore-libere', async (req, res) => {
 // RUTA 4: REZERVAREA FINALĂ COMPLETĂ (CORECTATĂ PENTRU PARAMETERS)
 // ========================================================
 app.post('/rezerva', async (req, res) => {
-    // Preluăm datele 100% reale trimise din Voiceflow (fie prin Parameters, fie prin Body)
-    const name = req.query.name || req.body.name;
-    const email = req.query.email || req.body.email;
-    const phone = req.query.phone || req.body.phone;
-    const date = req.query.date || req.body.date;
-    const time = req.query.time || req.body.time;
-    const serviceId = req.query.serviceId || req.body.serviceId;
-    const providerId = req.query.providerId || req.body.providerId;
+    // Preluăm datele și le curățăm automat de spații goale cu .trim()
+    let name = (req.query.name || req.body.name || "").toString().trim();
+    let email = (req.query.email || req.body.email || "").toString().trim();
+    let phone = (req.query.phone || req.body.phone || "").toString().trim();
+    let date = (req.query.date || req.body.date || "").toString().trim();
+    let time = (req.query.time || req.body.time || "").toString().trim();
+    let serviceId = (req.query.serviceId || req.body.serviceId || "").toString().trim();
+    let providerId = (req.query.providerId || req.body.providerId || "").toString().trim();
 
     console.log(`📡 Executare programare reală pentru: ${name} (${email})`);
     try {
