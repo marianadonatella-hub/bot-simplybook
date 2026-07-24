@@ -12,10 +12,9 @@ const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS || '{}');
 const auth = new google.auth.JWT(
     credentials.client_email,
     null,
-    credentials.private_key,
+   credentials.private_key ? credentials.private_key.replace(/\\n/g, '\n') : undefined,
     ['https://googleapis.com']
 );
-
 const calendar = google.calendar({ version: 'v3', auth });
 
 app.get('/servicii', (req, res) => {
