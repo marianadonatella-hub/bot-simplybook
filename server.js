@@ -12,8 +12,8 @@ const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS || '{}');
 const auth = new google.auth.JWT(
     credentials.client_email,
     null,
-   credentials.private_key ? credentials.private_key.replace(/\\n/g, '\n') : undefined,
-    ['https://googleapis.com']
+    credentials.private_key ? credentials.private_key.replace(/\\n/g, '\n') : undefined,
+    ['https://googleapis.com'] // CORECTAT AICI
 );
 const calendar = google.calendar({ version: 'v3', auth });
 
@@ -29,7 +29,6 @@ app.get('/angajati', (req, res) => {
     res.json(["Doctor Popa (Principal)"]);
 });
 
-// Suportă și POST și GET pentru a fi siguri
 app.all('/ore-libere', async (req, res) => {
     const date = req.query.date || req.body.date; 
     console.log(`📡 Solicitare ore Google Calendar pentru data: ${date}`);
@@ -40,7 +39,7 @@ app.all('/ore-libere', async (req, res) => {
         let formattedDate = date;
         if (date && date.includes('/')) {
             const parti = date.split('/');
-            formattedDate = `${parti[2]}-${parti[1]}-${parti[0]}`; // Corecție format dd/MM/yyyy -> yyyy-MM-dd
+            formattedDate = `${parti[2]}-${parti[1]}-${parti[0]}`; 
         }
 
         const timeMin = new Date(`${formattedDate}T00:00:00Z`).toISOString();
@@ -68,7 +67,6 @@ app.all('/ore-libere', async (req, res) => {
     }
 });
 
-// REZERVAREA FINALĂ - MODIFICATĂ SĂ ACCEPTE LINK-UL TĂU DIRECT
 app.all('/rezerva', async (req, res) => {
     let name = (req.query.name || req.body.name || "").toString().trim();
     let email = (req.query.email || req.body.email || "").toString().trim();
@@ -83,7 +81,7 @@ app.all('/rezerva', async (req, res) => {
         let formattedDate = date;
         if (date && date.includes('/')) {
             const parti = date.split('/');
-            formattedDate = `${parti[2]}-${parti[1]}-${parti[0]}`; // Corecție format dd/MM/yyyy -> yyyy-MM-dd
+            formattedDate = `${parti[2]}-${parti[1]}-${parti[0]}`; 
         }
 
         let durataMinute = 30;
@@ -95,7 +93,7 @@ app.all('/rezerva', async (req, res) => {
         const endDateTime = new Date(startDateTime.getTime() + durataMinute * 60000);
 
         const event = {
-            summary: `Programare: ${serviceId}`, // Va scrie numele întreg al serviciului
+            summary: `Programare: ${serviceId}`, 
             description: `Client: ${name}\nEmail: ${email}\nTelefon: ${phone}`,
             start: { dateTime: startDateTime.toISOString(), timeZone: 'Europe/Bucharest' },
             end: { dateTime: endDateTime.toISOString(), timeZone: 'Europe/Bucharest' },
